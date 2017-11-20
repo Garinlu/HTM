@@ -4,12 +4,10 @@
  * and open the template in the editor.
  */
 package htm;
-import graph.graphstream.GraphStreamBuilder;
-import graph.graphstream.MyGraphStreamEdge;
-import graph.graphstream.MyGraphStreamNode;
-import org.graphstream.graph.*;
-import org.graphstream.graph.implementations.AbstractGraph;
-import org.graphstream.graph.implementations.SingleGraph;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 /**
  *
@@ -33,6 +31,18 @@ public class HTM {
     public static void main(String[] args) {
 
 
+        String fileName = "files.txt";
+
+        //read file into stream, try-with-resources
+        try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
+
+            stream.forEach(System.out::println);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+/*
         Graph graph = new SingleGraph("graph"); // création du graphe
         graph.setNodeFactory(new NodeFactory<MyGraphStreamNode>() {
 			public MyGraphStreamNode newInstance(String id, Graph graph) {
@@ -60,7 +70,7 @@ public class HTM {
         new Thread(mn).start(); // exécution d'un processus d'apprentissage, à définir, pour mn
         
         
-        
+        */
         
     }
     

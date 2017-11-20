@@ -43,7 +43,7 @@ public class MySynapse extends AbstractNetworkEdge {
         }
     }
 
-    public boolean isActivaded() {
+    public boolean isActivated() {
         return currentValue >= THRESHOLD;
     }
 
