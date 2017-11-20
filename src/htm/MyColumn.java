@@ -18,9 +18,9 @@ import java.util.List;
 public class MyColumn extends AbstractNetworkNode {
 
 
-    private final double DELTA = 0.05;
+    private final double DELTA = 0.1;
     private List<MySynapse> synapseList;
-    private int threshhold = 3;
+    private int threshhold = 1;
 
     /**
      * TODO : Au cours de l'apprentissage, chaque colonne doit atteindre un taux d'activation.
@@ -33,9 +33,9 @@ public class MyColumn extends AbstractNetworkNode {
     public void updateSynapses() {
         for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
             if (((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
-                ((MySynapse) synapse).currentValueUdpate(DELTA);
+                ((MySynapse) synapse.getAbstractNetworkEdge()).currentValueUdpate(DELTA);
             } else {
-                ((MySynapse) synapse).currentValueUdpate(-DELTA);
+                ((MySynapse) synapse.getAbstractNetworkEdge()).currentValueUdpate(-DELTA);
             }
 
         }
@@ -44,7 +44,7 @@ public class MyColumn extends AbstractNetworkNode {
     private int getValue() {
         int value = 0;
         for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
-            if (((MySynapse) synapse).isActivated() && ((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
+            if (((MySynapse) synapse.getAbstractNetworkEdge()).isActivated() && ((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
                 value++;
             }
         }

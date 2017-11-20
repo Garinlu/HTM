@@ -91,27 +91,32 @@ public class MyNetwork implements Runnable {
             int j = 0;
             for (MyNeuron neuron : lstMN) {
                 neuron.setState(values.get(j));
+                j++;
             }
 
             for (MyColumn c : lstMC) {
 
                 if (c.isActivated()) {
                     c.getNode().setState(NodeInterface.State.ACTIVATED);
+                    c.updateSynapses();
                 } else {
                     c.getNode().setState(NodeInterface.State.DESACTIVATED);
                 }
 
-                c.updateSynapses();
-
-                for (EdgeInterface e : c.getNode().getEdgeIn()) {
+               /* for (EdgeInterface e : c.getNode().getEdgeIn()) {
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(MyNetwork.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                }
+                }*/
             }
             i++;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
