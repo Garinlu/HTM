@@ -7,38 +7,47 @@ package htm;
 
 import graph.AbstractNetworkEdge;
 import graph.EdgeInterface;
+
 import java.util.Random;
 
 /**
- *
  * @author farmetta
  */
 public class MySynapse extends AbstractNetworkEdge {
-    
+
     private double currentValue = new Random().nextDouble();
     private final double THRESHOLD = 0.5;
-    
-    
-    protected MySynapse(EdgeInterface _edge) {
+
+    private MyNeuron neuron;
+
+
+    protected MySynapse(EdgeInterface _edge, MyNeuron neuron) {
         super(_edge);
-        currentValueUdpate(0);
+        this.neuron = neuron;
     }
-    
+
     public void currentValueUdpate(double delta) {
         currentValue += delta;
-        
+
         if (currentValue > 1) {
             currentValue = 1;
         }
         if (currentValue < 0) {
             currentValue = 0;
         }
-        
+
         if (currentValue >= THRESHOLD) {
             getEdge().setState(EdgeInterface.State.ACTIVATED);
         } else {
             getEdge().setState(EdgeInterface.State.DESACTIVATED);
         }
     }
-    
+
+    public boolean isActivaded() {
+        return currentValue >= THRESHOLD;
+    }
+
+    public MyNeuron getNeuron() {
+        return this.neuron;
+    }
 }
