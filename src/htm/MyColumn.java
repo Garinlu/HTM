@@ -6,6 +6,7 @@
 package htm;
 
 import graph.AbstractNetworkNode;
+import graph.EdgeInterface;
 import graph.NodeInterface;
 
 import java.util.List;
@@ -16,6 +17,8 @@ import java.util.List;
  */
 public class MyColumn extends AbstractNetworkNode {
 
+
+    private final double DELTA = 0.05;
     private List<MySynapse> synapseList;
     private int threshhold = 3;
 
@@ -27,19 +30,12 @@ public class MyColumn extends AbstractNetworkNode {
      * Pour l'apprentissage, parcourir les synapses en entrée, et faire évoluer les poids synaptiques adéquatement.
      */
 
-    public void setSynapse(MySynapse synapse) {
-        synapseList.add(synapse);
-    }
-
     public void updateSynapses() {
-        boolean state = this.isActivated();
-        for (MySynapse synapse : synapseList) {
-            if (synapse.isActivated() && synapse.getNeuron().isActivated()) {
-                if (state) {
-                    synapse.currentValueUdpate(0.1);
-                } else {
-                    synapse.currentValueUdpate(-0.1);
-                }
+        for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
+            if (((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
+                ((MySynapse) synapse).currentValueUdpate(DELTA);
+            } else {
+                ((MySynapse) synapse).currentValueUdpate(-DELTA);
             }
 
         }
@@ -47,8 +43,8 @@ public class MyColumn extends AbstractNetworkNode {
 
     private int getValue() {
         int value = 0;
-        for (MySynapse synapse : synapseList) {
-            if (synapse.isActivated() && synapse.getNeuron().isActivated()) {
+        for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
+            if (((MySynapse) synapse).isActivated() && ((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
                 value++;
             }
         }

@@ -13,7 +13,18 @@ import graph.NodeInterface;
  * @author farmetta
  */
 public class MyNeuron  extends AbstractNetworkNode {
-    
+
+    private boolean state;
+
+    public boolean isState() {
+        return state;
+    }
+
+    public void setState(boolean state) {
+        this.state = state;
+        this.getNode().setState(state ? NodeInterface.State.ACTIVATED : NodeInterface.State.DESACTIVATED);
+    }
+
     /**
      * TODO : dans la constrution de démonstration, les instances de MyNeuron représentent les entrées.
      * Il faut ainsi définir une fonction d'encodage (entrée1 -> 0000011111000000, entrée2 -> 0001110001111100, etc.) permetant
