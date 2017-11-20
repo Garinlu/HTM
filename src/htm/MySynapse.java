@@ -50,4 +50,5 @@ public class MySynapse extends AbstractNetworkEdge {
     public MyNeuron getNeuron() {
         return this.neuron;
     }
+
 }
