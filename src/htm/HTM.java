@@ -41,7 +41,7 @@ public class HTM {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
 
         String fileName = "valueIn.txt";
@@ -66,6 +66,7 @@ public class HTM {
             e.printStackTrace();
         }
 
+
         Graph graph; // création du graphe
         graph = new SingleGraph("graph");
         graph.setNodeFactory(new NodeFactory<MyGraphStreamNode>() {
@@ -87,7 +88,7 @@ public class HTM {
         GraphStreamBuilder gb = new GraphStreamBuilder(graph);
         MyNetwork mn = new MyNetwork(valuesIn, gb, gb);
         
-        mn.buildNetwork(16, 5); // un réseau de démonstration avec 16 entrées et 5 colonnes
+        mn.buildNetwork(12, 5); // un réseau de démonstration avec 16 entrées et 5 colonnes
         graph.display(false);
         
         

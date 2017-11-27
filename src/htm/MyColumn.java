@@ -6,8 +6,12 @@
 package htm;
 
 import graph.AbstractNetworkNode;
+import graph.EdgeInterface;
 import graph.NodeInterface;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 
@@ -16,8 +20,12 @@ import java.util.List;
  */
 public class MyColumn extends AbstractNetworkNode {
 
+
+    private final double DELTA = 0.1;
     private List<MySynapse> synapseList;
-    private int threshhold = 3;
+    private int threshhold = 1;
+    private File file;
+    private int compteurNbEntree = 0;
 
     /**
      * TODO : Au cours de l'apprentissage, chaque colonne doit atteindre un taux d'activation.
@@ -27,19 +35,12 @@ public class MyColumn extends AbstractNetworkNode {
      * Pour l'apprentissage, parcourir les synapses en entrée, et faire évoluer les poids synaptiques adéquatement.
      */
 
-    public void setSynapse(MySynapse synapse) {
-        synapseList.add(synapse);
-    }
-
     public void updateSynapses() {
-        boolean state = this.isActivated();
-        for (MySynapse synapse : synapseList) {
-            if (synapse.isActivated() && synapse.getNeuron().isActivated()) {
-                if (state) {
-                    synapse.currentValueUdpate(0.1);
-                } else {
-                    synapse.currentValueUdpate(-0.1);
-                }
+        for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
+            if (((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
+                ((MySynapse) synapse.getAbstractNetworkEdge()).currentValueUdpate(DELTA);
+            } else {
+                ((MySynapse) synapse.getAbstractNetworkEdge()).currentValueUdpate(-DELTA);
             }
 
         }
@@ -47,20 +48,39 @@ public class MyColumn extends AbstractNetworkNode {
 
     private int getValue() {
         int value = 0;
-        for (MySynapse synapse : synapseList) {
-            if (synapse.isActivated() && synapse.getNeuron().isActivated()) {
+        for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
+            if (((MySynapse) synapse.getAbstractNetworkEdge()).isActivated() && ((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
                 value++;
             }
         }
         return value;
     }
 
-    public boolean isActivated() {
-        return getValue() >= this.threshhold;
+    public boolean isActivated() throws IOException {
+        if (this.compteurNbEntree == 10)
+            this.compteurNbEntree = 0;
+        this.compteurNbEntree++;
+
+        if (getValue() >= this.threshhold) {
+            this.writeState("1", true);
+            return true;
+        }
+        this.writeState("0", true);
+        return false;
     }
 
-    public MyColumn(NodeInterface _node) {
+    public MyColumn(NodeInterface _node, String nameFile) throws IOException {
         super(_node);
+
+        this.file = new File(nameFile + ".txt");
+
+        this.writeState(nameFile + " :", false);
+    }
+
+    public void writeState(String state, boolean removeDate) throws IOException {
+        FileWriter writer = new FileWriter(this.file, removeDate);
+        writer.write(state + ((!removeDate || compteurNbEntree == 10) ? "\r\n" : ""));
+        writer.close();
     }
 }
 
