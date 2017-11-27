@@ -21,9 +21,9 @@ import java.util.List;
 public class MyColumn extends AbstractNetworkNode {
 
 
-    private final double DELTA = 0.1;
+    private final double DELTA = 0.01;
     private List<MySynapse> synapseList;
-    private int threshhold = 1;
+    private int threshhold = 2;
     private File file;
     private int compteurNbEntree = 0;
 
@@ -46,7 +46,7 @@ public class MyColumn extends AbstractNetworkNode {
         }
     }
 
-    private int getValue() {
+    public int getValue() {
         int value = 0;
         for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
             if (((MySynapse) synapse.getAbstractNetworkEdge()).isActivated() && ((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
@@ -57,7 +57,7 @@ public class MyColumn extends AbstractNetworkNode {
     }
 
     public boolean isActivated() throws IOException {
-        if (this.compteurNbEntree == 10)
+        if (this.compteurNbEntree == 22)
             this.compteurNbEntree = 0;
         this.compteurNbEntree++;
 
@@ -79,7 +79,7 @@ public class MyColumn extends AbstractNetworkNode {
 
     public void writeState(String state, boolean removeDate) throws IOException {
         FileWriter writer = new FileWriter(this.file, removeDate);
-        writer.write(state + ((!removeDate || compteurNbEntree == 10) ? "\r\n" : ""));
+        writer.write(state + ((!removeDate || compteurNbEntree == 22) ? "\r\n" : ""));
         writer.close();
     }
 }
