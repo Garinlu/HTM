@@ -67,7 +67,8 @@ public class MyNetwork implements Runnable {
             
             if (!n.getNode().isConnectedTo(c.getNode())) {
                 EdgeInterface e = eb.getNewEdge(n.getNode(), c.getNode());
-                MySynapse s = new MySynapse(e, n);
+                MySynapse s = new MySynapse(e);
+                c.setSynapse(s);
                 e.setAbstractNetworkEdge(s);
                 
             } else {
