@@ -72,7 +72,7 @@ public class MyColumn extends AbstractNetworkNode {
     public MyColumn(NodeInterface _node, String nameFile) throws IOException {
         super(_node);
 
-        this.file = new File(nameFile + ".txt");
+        this.file = new File("datas/" + nameFile + ".txt");
 
         this.writeState(nameFile + " :", false);
     }
