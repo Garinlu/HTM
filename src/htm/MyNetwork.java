@@ -19,7 +19,7 @@ import java.util.*;
  */
 public class MyNetwork implements Runnable {
 
-    private final int THRESHOLD = 3;
+    private final int THRESHOLD = 4;
 
 
     private NodeBuilder nb;
@@ -37,7 +37,7 @@ public class MyNetwork implements Runnable {
     }
 
 
-    private static final int DENSITE_INPUT_COLUMNS = 10;
+    private static final int DENSITE_INPUT_COLUMNS = 24;
 
     public void buildNetwork(int nbInputs, int nbColumns) throws IOException {
 
@@ -94,14 +94,17 @@ public class MyNetwork implements Runnable {
                 j++;
             }
 
-            Map<MyColumn, Integer> lstColVal = new HashMap<>();
+            Map<MyColumn, Double> lstColVal = new HashMap<>();
 
             for (MyColumn c : lstMC) {
                 c.getNode().setState(NodeInterface.State.DESACTIVATED);
                 try {
                     if (c.isActivated()) {
+                        c.elligible(true);
                         lstColVal.put(c, c.getValue());
                     }
+                    else
+                        c.elligible(false);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -120,22 +123,22 @@ public class MyNetwork implements Runnable {
                     break;
                 colMax.getNode().setState(NodeInterface.State.ACTIVATED);
                 colMax.updateSynapses();
-                colMax.winCompet(true);
+//                colMax.winCompet(true);
                 colsAct++;
 
             }
 
             //perdant competition
             for (MyColumn c : lstColVal.keySet()) {
-                c.winCompet(false);
+//                c.winCompet(false);
             }
 
             i++;
-            try {
-                Thread.sleep(1);
+            /*try {
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
+            }*/
         }
     }
 

@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.PriorityQueue;
 
 
 /**
@@ -20,12 +21,18 @@ import java.util.List;
  */
 public class MyColumn extends AbstractNetworkNode {
 
+    private final int THRESHOLD_PERMANENCE_NB_OBS = 40;
+    private final double THRESHOLD_PERMANENCE_MIN = 1.10;
+    private double boost_perm = 1.0;
 
     private final double DELTA = 0.01;
     private List<MySynapse> synapseList;
     private int threshhold = 2;
     private File file;
+    private String nameFile;
     private int compteurNbEntree = 0;
+
+    private PriorityQueue<Boolean> lastEligibilite;
 
     /**
      * TODO : Au cours de l'apprentissage, chaque colonne doit atteindre un taux d'activation.
@@ -46,14 +53,14 @@ public class MyColumn extends AbstractNetworkNode {
         }
     }
 
-    public int getValue() {
+    public double getValue() {
         int value = 0;
         for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
             if (((MySynapse) synapse.getAbstractNetworkEdge()).isActivated() && ((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
                 value++;
             }
         }
-        return value;
+        return value * this.boost_perm;
     }
 
     public boolean isActivated() throws IOException {
@@ -71,16 +78,39 @@ public class MyColumn extends AbstractNetworkNode {
 
     public MyColumn(NodeInterface _node, String nameFile) throws IOException {
         super(_node);
-
+        this.nameFile = nameFile;
         this.file = new File("datas/" + nameFile + ".txt");
 
         this.writeState(nameFile + " :", false);
+        lastEligibilite = new PriorityQueue<>();
     }
 
     public void writeState(String state, boolean removeDate) throws IOException {
         FileWriter writer = new FileWriter(this.file, removeDate);
         writer.write(state + ((!removeDate || compteurNbEntree == 22) ? "\r\n" : ""));
         writer.close();
+    }
+
+    public void elligible(boolean isEligible) {
+        this.lastEligibilite.add(isEligible);
+        if (this.lastEligibilite.size() > THRESHOLD_PERMANENCE_NB_OBS)
+            this.lastEligibilite.poll();
+        if (this.lastEligibilite.size() == THRESHOLD_PERMANENCE_NB_OBS) {
+            int nbEli = 0;
+            for (boolean isEli : this.lastEligibilite) {
+                if (isEli) nbEli++;
+            }
+
+            double ratioAllum = ((nbEli) / THRESHOLD_PERMANENCE_NB_OBS);
+            double ratio = THRESHOLD_PERMANENCE_MIN / (ratioAllum + 1);
+            if (ratio > 1) {
+                this.boost_perm *= ratio;
+                System.out.println("BOOST PERM : ");
+                System.out.println(this.nameFile + " : " + this.boost_perm);
+            } else {
+                this.boost_perm = 1.0;
+            }
+        }
     }
 }
 
