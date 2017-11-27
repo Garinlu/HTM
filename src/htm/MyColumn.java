@@ -9,6 +9,9 @@ import graph.AbstractNetworkNode;
 import graph.EdgeInterface;
 import graph.NodeInterface;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 
@@ -21,6 +24,8 @@ public class MyColumn extends AbstractNetworkNode {
     private final double DELTA = 0.1;
     private List<MySynapse> synapseList;
     private int threshhold = 1;
+    private File file;
+    private int compteurNbEntree = 0;
 
     /**
      * TODO : Au cours de l'apprentissage, chaque colonne doit atteindre un taux d'activation.
@@ -51,12 +56,31 @@ public class MyColumn extends AbstractNetworkNode {
         return value;
     }
 
-    public boolean isActivated() {
-        return getValue() >= this.threshhold;
+    public boolean isActivated() throws IOException {
+        if (this.compteurNbEntree == 10)
+            this.compteurNbEntree = 0;
+        this.compteurNbEntree++;
+
+        if (getValue() >= this.threshhold) {
+            this.writeState("1", true);
+            return true;
+        }
+        this.writeState("0", true);
+        return false;
     }
 
-    public MyColumn(NodeInterface _node) {
+    public MyColumn(NodeInterface _node, String nameFile) throws IOException {
         super(_node);
+
+        this.file = new File(nameFile + ".txt");
+
+        this.writeState(nameFile + " :", false);
+    }
+
+    public void writeState(String state, boolean removeDate) throws IOException {
+        FileWriter writer = new FileWriter(this.file, removeDate);
+        writer.write(state + ((!removeDate || compteurNbEntree == 10) ? "\r\n" : ""));
+        writer.close();
     }
 }
 

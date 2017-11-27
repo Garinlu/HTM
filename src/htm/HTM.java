@@ -41,7 +41,7 @@ public class HTM {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
 
         String fileName = "valueIn.txt";
@@ -65,6 +65,7 @@ public class HTM {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 
         Graph graph; // création du graphe
         graph = new SingleGraph("graph");

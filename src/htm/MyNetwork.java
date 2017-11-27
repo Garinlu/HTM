@@ -10,11 +10,10 @@ import graph.EdgeInterface;
 import graph.NodeBuilder;
 import graph.NodeInterface;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -39,7 +38,7 @@ public class MyNetwork implements Runnable {
 
     private static final int DENSITE_INPUT_COLUMNS = 8;
 
-    public void buildNetwork(int nbInputs, int nbColumns) {
+    public void buildNetwork(int nbInputs, int nbColumns) throws IOException {
 
 
         // création des entrées
@@ -55,7 +54,7 @@ public class MyNetwork implements Runnable {
         lstMC = new ArrayList<MyColumn>();
         for (int i = 0; i < nbColumns; i++) {
             NodeInterface ni = nb.getNewNode();
-            MyColumn c = new MyColumn(ni);
+            MyColumn c = new MyColumn(ni, "column_"+i);
             c.getNode().setPosition(i * 2, 2);
             ni.setAbstractNetworkNode(c);
 
@@ -96,11 +95,15 @@ public class MyNetwork implements Runnable {
 
             for (MyColumn c : lstMC) {
 
-                if (c.isActivated()) {
-                    c.getNode().setState(NodeInterface.State.ACTIVATED);
-                    c.updateSynapses();
-                } else {
-                    c.getNode().setState(NodeInterface.State.DESACTIVATED);
+                try {
+                    if (c.isActivated()) {
+                        c.getNode().setState(NodeInterface.State.ACTIVATED);
+                        c.updateSynapses();
+                    } else {
+                        c.getNode().setState(NodeInterface.State.DESACTIVATED);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
 
                /* for (EdgeInterface e : c.getNode().getEdgeIn()) {
@@ -113,7 +116,7 @@ public class MyNetwork implements Runnable {
             }
             i++;
             try {
-                Thread.sleep(200);
+                Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
