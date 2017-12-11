@@ -12,10 +12,8 @@ import graph.NodeInterface;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.Stack;
 
 
 /**
@@ -23,16 +21,22 @@ import java.util.Stack;
  */
 public class MyColumn extends AbstractNetworkNode {
 
+    private final int THRESHOLD_PERMANENCE_NB_OBS = 40;
+    private final double THRESHOLD_PERMANENCE_MIN = 1.20;
+    private double boost_perm = 1.0;
 
-    private final double DELTA = 0.1;
+    private final double DELTA = 0.01;
     private List<MySynapse> synapseList;
-    private int threshhold = 1;
+    private int threshhold = 2;
     private File file;
+    private String nameFile;
     private int compteurNbEntree = 0;
     private PriorityQueue<Boolean> lastCompet;
-    private final int NB_COMPET_OBS = 15;
+    private final int NB_COMPET_OBS = 25;
     private final double RATIO_COMPET_MIN = 1.2;
     private double boostCompet;
+
+    private PriorityQueue<Boolean> lastEligibilite;
 
     /**
      * TODO : Au cours de l'apprentissage, chaque colonne doit atteindre un taux d'activation.
@@ -55,14 +59,20 @@ public class MyColumn extends AbstractNetworkNode {
 
     public void winCompet(boolean result) {
         this.lastCompet.add(result);
+        if (this.lastCompet.size() > NB_COMPET_OBS) this.lastCompet.poll();
         int nbTrue = 0;
         for (boolean res : lastCompet) {
             if (res) nbTrue++;
         }
+        if (this.lastCompet.size() < NB_COMPET_OBS) return;
         double ratio = nbTrue / lastCompet.size();
+        System.out.println("ratio " + nameFile + " " + ratio);
         double diff = RATIO_COMPET_MIN / (ratio + 1);
         if (diff > 1) {
+            System.out.println("Boost : " + diff * 1.3 + "   " + nameFile);
             this.boost(diff);
+        } else  {
+            this.boost(1);
         }
     }
 
@@ -70,9 +80,10 @@ public class MyColumn extends AbstractNetworkNode {
         this.boostCompet = value;
     }
 
-    private double getValue() {
-        return this.getNonBoostedValue() * boostCompet;
+    public double getValue() {
+        return this.getNonBoostedValue() * this.boost_perm * this.boostCompet;
     }
+
 
     private int getNonBoostedValue() {
         int value = 0;
@@ -85,7 +96,7 @@ public class MyColumn extends AbstractNetworkNode {
     }
 
     public boolean isActivated() throws IOException {
-        if (this.compteurNbEntree == 10)
+        if (this.compteurNbEntree == 22)
             this.compteurNbEntree = 0;
         this.compteurNbEntree++;
 
@@ -99,17 +110,41 @@ public class MyColumn extends AbstractNetworkNode {
 
     public MyColumn(NodeInterface _node, String nameFile) throws IOException {
         super(_node);
+        this.nameFile = nameFile;
         this.lastCompet = new PriorityQueue<>(NB_COMPET_OBS);
         this.boostCompet = 1.0;
         this.file = new File("datas/" + nameFile + ".txt");
 
         this.writeState(nameFile + " :", false);
+        lastEligibilite = new PriorityQueue<>();
     }
 
     public void writeState(String state, boolean removeDate) throws IOException {
         FileWriter writer = new FileWriter(this.file, removeDate);
-        writer.write(state + ((!removeDate || compteurNbEntree == 10) ? "\r\n" : ""));
+        writer.write(state + ((!removeDate || compteurNbEntree == 22) ? "\r\n" : ""));
         writer.close();
+    }
+
+    public void elligible(boolean isEligible) {
+        this.lastEligibilite.add(isEligible);
+        if (this.lastEligibilite.size() > THRESHOLD_PERMANENCE_NB_OBS)
+            this.lastEligibilite.poll();
+        if (this.lastEligibilite.size() == THRESHOLD_PERMANENCE_NB_OBS) {
+            int nbEli = 0;
+            for (boolean isEli : this.lastEligibilite) {
+                if (isEli) nbEli++;
+            }
+
+            double ratioAllum = ((nbEli) / THRESHOLD_PERMANENCE_NB_OBS);
+            double ratio = THRESHOLD_PERMANENCE_MIN / (ratioAllum + 1);
+            if (ratio > 1) {
+                this.boost_perm *= ratio;
+                /*System.out.println("BOOST PERM : ");
+                System.out.println(this.nameFile + " : " + this.boost_perm);*/
+            } else {
+                this.boost_perm = 1.0;
+            }
+        }
     }
 }
 

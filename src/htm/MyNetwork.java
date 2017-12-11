@@ -11,15 +11,16 @@ import graph.NodeBuilder;
 import graph.NodeInterface;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 
 /**
  * @author farmetta
  */
 public class MyNetwork implements Runnable {
+
+    private final int THRESHOLD = 4;
+
 
     private NodeBuilder nb;
     private EdgeBuilder eb;
@@ -36,7 +37,7 @@ public class MyNetwork implements Runnable {
     }
 
 
-    private static final int DENSITE_INPUT_COLUMNS = 8;
+    private static final int DENSITE_INPUT_COLUMNS = 24;
 
     public void buildNetwork(int nbInputs, int nbColumns) throws IOException {
 
@@ -54,8 +55,8 @@ public class MyNetwork implements Runnable {
         lstMC = new ArrayList<MyColumn>();
         for (int i = 0; i < nbColumns; i++) {
             NodeInterface ni = nb.getNewNode();
-            MyColumn c = new MyColumn(ni, "column_"+i);
-            c.getNode().setPosition(i * 2, 2);
+            MyColumn c = new MyColumn(ni, "column_" + i);
+            c.getNode().setPosition(i * 2, 10);
             ni.setAbstractNetworkNode(c);
 
             lstMC.add(c);
@@ -93,33 +94,50 @@ public class MyNetwork implements Runnable {
                 j++;
             }
 
-            for (MyColumn c : lstMC) {
+            Map<MyColumn, Double> lstColVal = new HashMap<>();
 
+            for (MyColumn c : lstMC) {
+                c.getNode().setState(NodeInterface.State.DESACTIVATED);
                 try {
                     if (c.isActivated()) {
-                        c.getNode().setState(NodeInterface.State.ACTIVATED);
-                        c.updateSynapses();
-                    } else {
-                        c.getNode().setState(NodeInterface.State.DESACTIVATED);
-                    }
+                        c.elligible(true);
+                        lstColVal.put(c, c.getValue());
+                    } else
+                        c.elligible(false);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-               /* for (EdgeInterface e : c.getNode().getEdgeIn()) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(MyNetwork.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }*/
             }
+
+            int colsAct = 0;
+            boolean compet = (lstColVal.size() > THRESHOLD);
+            while (THRESHOLD >= colsAct) {
+                MyColumn colMax = null;
+                for (MyColumn c : lstColVal.keySet()) {
+                    if (null == colMax || lstColVal.get(c) > lstColVal.get(colMax)) {
+                        colMax = c;
+                    }
+                }
+                if (0 == lstColVal.size())
+                    break;
+                colMax.getNode().setState(NodeInterface.State.ACTIVATED);
+                colMax.updateSynapses();
+                if (compet) colMax.winCompet(true);
+                lstColVal.remove(colMax);
+                colsAct++;
+            }
+
+            //perdant competition
+            for (MyColumn c : lstColVal.keySet()) {
+                c.winCompet(false);
+            }
+
             i++;
-            try {
-                Thread.sleep(1);
+            /*try {
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
+            }*/
         }
     }
 
