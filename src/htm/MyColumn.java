@@ -27,7 +27,7 @@ public class MyColumn extends AbstractNetworkNode {
 
     private final double DELTA = 0.01;
     private List<MySynapse> synapseList;
-    private int threshhold = 2;
+    private int threshhold = 3;
     private File file;
     private String nameFile;
     private int compteurNbEntree = 0;
@@ -37,6 +37,19 @@ public class MyColumn extends AbstractNetworkNode {
     private double boostCompet;
 
     private PriorityQueue<Boolean> lastEligibilite;
+
+
+
+    public MyColumn(NodeInterface _node, String nameFile) throws IOException {
+        super(_node);
+        this.nameFile = nameFile;
+        this.lastCompet = new PriorityQueue<>(NB_COMPET_OBS);
+        this.boostCompet = 1.0;
+        this.file = new File("datas/" + nameFile + ".txt");
+
+        this.writeState(nameFile + " :", false);
+        lastEligibilite = new PriorityQueue<>();
+    }
 
     /**
      * TODO : Au cours de l'apprentissage, chaque colonne doit atteindre un taux d'activation.
@@ -57,6 +70,13 @@ public class MyColumn extends AbstractNetworkNode {
         }
     }
 
+    /**
+     * Fonction gérant le boost de compétition. On appelle la fonction ci dessous à chaque compétition effectuée par
+     * la colonne. A chaque fois on sauvegarde les NB_COMPET_OBS dernières observations. On effectue un ratio dessus
+     * et on regarde si ce ratio est inférieur au palier RATIO_COMPET_MIN. Si c'est le cas on augement le boost.
+     * Sinon on le remet à 1.
+     * @param result
+     */
     public void winCompet(boolean result) {
         this.lastCompet.add(result);
         if (this.lastCompet.size() > NB_COMPET_OBS) this.lastCompet.poll();
@@ -66,9 +86,9 @@ public class MyColumn extends AbstractNetworkNode {
         }
         if (this.lastCompet.size() < NB_COMPET_OBS) return;
         double ratio = nbTrue / lastCompet.size();
-        System.out.println("ratio " + nameFile + " " + ratio);
         double diff = RATIO_COMPET_MIN / (ratio + 1);
         if (diff > 1) {
+            System.out.println("BOOST COMPETITION : ");
             System.out.println("Boost : " + diff * 1.3 + "   " + nameFile);
             this.boost(diff);
         } else  {
@@ -76,55 +96,12 @@ public class MyColumn extends AbstractNetworkNode {
         }
     }
 
-    private void boost(double value) {
-        this.boostCompet = value;
-    }
-
-    public double getValue() {
-        return this.getNonBoostedValue() * this.boost_perm * this.boostCompet;
-    }
-
-
-    private int getNonBoostedValue() {
-        int value = 0;
-        for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
-            if (((MySynapse) synapse.getAbstractNetworkEdge()).isActivated() && ((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
-                value++;
-            }
-        }
-        return value;
-    }
-
-    public boolean isActivated() throws IOException {
-        if (this.compteurNbEntree == 22)
-            this.compteurNbEntree = 0;
-        this.compteurNbEntree++;
-
-        if (getValue() >= this.threshhold) {
-            this.writeState("1", true);
-            return true;
-        }
-        this.writeState("0", true);
-        return false;
-    }
-
-    public MyColumn(NodeInterface _node, String nameFile) throws IOException {
-        super(_node);
-        this.nameFile = nameFile;
-        this.lastCompet = new PriorityQueue<>(NB_COMPET_OBS);
-        this.boostCompet = 1.0;
-        this.file = new File("datas/" + nameFile + ".txt");
-
-        this.writeState(nameFile + " :", false);
-        lastEligibilite = new PriorityQueue<>();
-    }
-
-    public void writeState(String state, boolean removeDate) throws IOException {
-        FileWriter writer = new FileWriter(this.file, removeDate);
-        writer.write(state + ((!removeDate || compteurNbEntree == 22) ? "\r\n" : ""));
-        writer.close();
-    }
-
+    /**
+     * Fonction gérant le boost de permanence. On appelle la fonction ci dessous à chaque nouvelle entrée.
+     * A chaque fois on sauvegarde les THRESHOLD_PERMANENCE_NB_OBS dernières observations. On effectue un ratio dessus
+     * et on regarde si ce ratio est inférieur au palier THRESHOLD_PERMANENCE_MIN. Si c'est le cas on augement le boost.
+     * Sinon on le remet à 1.
+     */
     public void elligible(boolean isEligible) {
         this.lastEligibilite.add(isEligible);
         if (this.lastEligibilite.size() > THRESHOLD_PERMANENCE_NB_OBS)
@@ -139,12 +116,56 @@ public class MyColumn extends AbstractNetworkNode {
             double ratio = THRESHOLD_PERMANENCE_MIN / (ratioAllum + 1);
             if (ratio > 1) {
                 this.boost_perm *= ratio;
-                /*System.out.println("BOOST PERM : ");
-                System.out.println(this.nameFile + " : " + this.boost_perm);*/
+                System.out.println("BOOST PERMANENCE : ");
+                System.out.println(this.nameFile + " : " + this.boost_perm);
             } else {
                 this.boost_perm = 1.0;
             }
         }
+    }
+
+    private void boost(double value) {
+        this.boostCompet = value;
+    }
+
+    public double getValue() {
+        return this.getNonBoostedValue() * this.boost_perm * this.boostCompet;
+    }
+
+
+    /**
+     * Fonction permettant de retourner la valeur de la colonne sans les boosts. Utile pour séparer les modifications de la
+     * valeur avec les 2 boosts.
+     * @return
+     */
+    private int getNonBoostedValue() {
+        int value = 0;
+        for (EdgeInterface synapse : this.getNode().getEdgeIn()) {
+            if (((MySynapse) synapse.getAbstractNetworkEdge()).isActivated() && ((MyNeuron) synapse.getNodeIn().getAbstractNetworkNode()).isState()) {
+                value++;
+            }
+        }
+        return value;
+    }
+
+    /**
+     * Retourne l'activation de la colonne. Implémente le compteur compteurNbEntree (pour l'écriture dans le fichier =>
+     * retour à la ligne)
+     *
+     * @return boolean
+     */
+    public boolean isActivated() {
+        if (this.compteurNbEntree == 22)
+            this.compteurNbEntree = 0;
+        this.compteurNbEntree++;
+
+        return getValue() >= this.threshhold;
+    }
+
+    public void writeState(String state, boolean keepData) throws IOException {
+        FileWriter writer = new FileWriter(this.file, keepData);
+        writer.write(state + ((!keepData || compteurNbEntree == 22) ? "\r\n" : ""));
+        writer.close();
     }
 }
 

@@ -19,7 +19,7 @@ import java.util.*;
  */
 public class MyNetwork implements Runnable {
 
-    private final int THRESHOLD = 4;
+    private final int THRESHOLD = 3;
 
 
     private NodeBuilder nb;
@@ -96,6 +96,11 @@ public class MyNetwork implements Runnable {
 
             Map<MyColumn, Double> lstColVal = new HashMap<>();
 
+            /*
+                Parcours des colonnes suite à la mise à jour des neurones.
+                Appel de la fonction de boost de permanence pour lui dire si sa colonne entre en compétition ou non.
+                Ecriture de la sortir pour toute les colonnes n'étant pas illegible.
+             */
             for (MyColumn c : lstMC) {
                 c.getNode().setState(NodeInterface.State.DESACTIVATED);
                 try {
@@ -103,12 +108,17 @@ public class MyNetwork implements Runnable {
                         c.elligible(true);
                         lstColVal.put(c, c.getValue());
                     } else
+                        c.writeState("0", true);
                         c.elligible(false);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
+            /*
+            On active les colonnes les plus fortes (colmax) tant qu'on dépasse pas le palier THRESHOLD.
+            Ecriture de la sortie pour les dernière colonnes.
+             */
             int colsAct = 0;
             boolean compet = (lstColVal.size() > THRESHOLD);
             while (THRESHOLD >= colsAct) {
@@ -122,22 +132,35 @@ public class MyNetwork implements Runnable {
                     break;
                 colMax.getNode().setState(NodeInterface.State.ACTIVATED);
                 colMax.updateSynapses();
+                try {
+                    colMax.writeState("1", true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 if (compet) colMax.winCompet(true);
                 lstColVal.remove(colMax);
                 colsAct++;
             }
 
-            //perdant competition
+            /*
+            Perdant de la competition
+             */
             for (MyColumn c : lstColVal.keySet()) {
+                try {
+                    c.writeState("0", true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 c.winCompet(false);
             }
 
             i++;
-            /*try {
+
+            try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }*/
+            }
         }
     }
 

@@ -26,6 +26,9 @@ public class MySynapse extends AbstractNetworkEdge {
         this.neuron = neuron;
     }
 
+    /*
+    On modifie la permanence du synapse selon une valeur donnée (par la colonne)
+     */
     public void currentValueUdpate(double delta) {
         currentValue += delta;
 

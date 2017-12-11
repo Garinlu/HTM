@@ -20,6 +20,10 @@ public class MyNeuron  extends AbstractNetworkNode {
         return state;
     }
 
+    /**
+     * Construction du neurone en fonction de son état (1 ou 0)
+     * @param state
+     */
     public void setState(boolean state) {
         this.state = state;
         this.getNode().setState(state ? NodeInterface.State.ACTIVATED : NodeInterface.State.DESACTIVATED);

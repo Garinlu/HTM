@@ -88,7 +88,7 @@ public class HTM {
         GraphStreamBuilder gb = new GraphStreamBuilder(graph);
         MyNetwork mn = new MyNetwork(valuesIn, gb, gb);
         
-        mn.buildNetwork(24, 7); // un réseau de démonstration avec 16 entrées et 5 colonnes
+        mn.buildNetwork(24, 17); // un réseau de démonstration avec 16 entrées et 5 colonnes
         graph.display(false);
 
         new Thread(mn).start(); // exécution d'un processus d'apprentissage, à définir, pour mn
